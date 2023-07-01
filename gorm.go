@@ -105,7 +105,7 @@ func (l *gormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func(
 	if err != nil {
 		evt = log.Err(err)
 	} else if elapsed > l.SlowThreshold {
-		evt = log.Warn().Str(zerolog.MessageFieldName, fmt.Sprintf("SLOW SQL >= %V", l.SlowThreshold))
+		evt = log.Warn().Str(zerolog.MessageFieldName, fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold))
 	} else {
 		evt = log.Trace()
 	}
