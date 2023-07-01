@@ -2,7 +2,7 @@
 
 ## gin
 
-1. 提供了更多的 handler 选择。
+1. 提供了更多的 handler 选择， 自动参数绑定。
    - `func(*gin.Context) error`
    - `func(*gin.Context, *reqType) error`
    - `func(*gin.Context) (*respType, error)`
