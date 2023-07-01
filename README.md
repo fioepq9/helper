@@ -2,15 +2,21 @@
 
 ## gin
 
-1. 提供了更多的 handler 选择， 自动参数绑定。
+1. 提供了更多的 handler 选择。
    - `func(*gin.Context) error`
    - `func(*gin.Context, *reqType) error`
    - `func(*gin.Context) (*respType, error)`
    - `func(*gin.Context, *reqType) (*respType, error)`
 
-2. 默认使用中文的 validator。 
+2. 自动参数绑定。[如何添加更多支持的 tag ?](./examples/gin/add_new_binding/main.go)
+   - `header`
+   - `uri`
+   - `form`
+   - `json`
+
+3. 默认使用中文的 validator。 
  
-3. 通过 tag `default` 为 `reqType` 提供默认值，默认支持: 
+4. 通过 tag `default` 为 `reqType` 提供默认值，默认支持: 
    - `string`: `default:"foo"`
    - `[]byte`: `default:"bar"`
    - `int`: `default:"10"`
@@ -20,7 +26,7 @@
    - `time.Time`: 使用 `time.RFC3339` 或者 `time.RFC3339Nano`，支持 `now+{time.Duration}`, `now-{time.Duration}`
    - 使用 `mapstructure` 支持自定义类型。
    
-4. 支持使用 `zerolog` 覆盖以下 `gin` 的配置。 
+5. 支持使用 `zerolog` 覆盖以下 `gin` 的配置。 
    - `gin.DefaultWriter`
    - `gin.DefaultErrorWriter`
    - `gin.DebugPrintRouteFunc` 
