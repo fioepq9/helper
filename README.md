@@ -2,12 +2,28 @@
 
 ## gin
 
-1. 提供了更多的 handler 选择: `func(*gin.Context) error`, `func(*gin.Context, *reqType) error`, `func(*gin.Context) (*respType, error)`, `func(*gin.Context, *reqType) (*respType, error)`。
+1. 提供了更多的 handler 选择。
+   - `func(*gin.Context) error`
+   - `func(*gin.Context, *reqType) error`
+   - `func(*gin.Context) (*respType, error)`
+   - `func(*gin.Context, *reqType) (*respType, error)`
+
 2. 默认使用中文的 validator。 
-3. 通过 tag 为 `reqType` 提供默认值，默认支持: `string`, `[]byte`, `int`, `float64`, `bool`, `time.Duration`, `time.Time`。使用 `mapstructure` 支持自定义类型。
+ 
+3. 通过 tag `default` 为 `reqType` 提供默认值，默认支持: 
+   - `string`: `default:"foo"`
+   - `[]byte`: `default:"bar"`
+   - `int`: `default:"10"`
+   - `float64`: `default:"10.0"`
+   - `bool`: `default:"true"`
+   - `time.Duration`: `default:"10s"`, 使用 `time.ParseDuration` 进行解析。
+   - `time.Time`: 使用 `time.RFC3339` 或者 `time.RFC3339Nano`，支持 `now+{time.Duration}`, `now-{time.Duration}`
+   - 使用 `mapstructure` 支持自定义类型。
    
-   -  `time.Time`: 使用 `time.RFC3339` 或者 `time.RFC3339Nano`，支持 `now+{time.Duration}`, `now-{time.Duration}`
-5. 支持使用 `zerolog` 覆盖默认的 `gin.DefaultWriter`, `gin.DefaultErrorWriter`, `DebugPrintRouteFunc`。 
+4. 支持使用 `zerolog` 覆盖 
+   - `gin.DefaultWriter`
+   - `gin.DefaultErrorWriter`
+   - `DebugPrintRouteFunc`。 
 
 ### usage
 
