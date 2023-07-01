@@ -62,4 +62,4 @@ func main() {
 
 ### examples
 
-1. [默认值的使用](./examples/gin/default_binding)
+1. [默认值的使用](./examples/gin/default_binding/main.go)
