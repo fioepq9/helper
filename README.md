@@ -52,7 +52,7 @@ func main() {
 	
 	r.GET("/echo", func(c *gin.Context, req *EchoRequest) (resp *EchoResponse, err error) {
 		return &EchoResponse{Message: req.Message}, nil
-    })
+	})
 	
 	if err := e.Run(":8080"); err != nil {
 		panic(err)
