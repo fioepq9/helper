@@ -31,6 +31,12 @@
    - `gin.DefaultErrorWriter`
    - `gin.DebugPrintRouteFunc` 
 
+6. `reqType` 支持下列钩子。
+   - `BeforeBind(*gin.Context)`
+   - `AfterBind(*gin.Context)`
+   - `BeforeValidate(*gin.Context)`
+   - `AfterValidate(*gin.Context)`
+
 ### Usage
 
 ```go
