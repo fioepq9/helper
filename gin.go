@@ -30,6 +30,8 @@ type GinHelper struct {
 	ErrorHandler        func(*gin.Context, error)
 }
 
+// Gin
+//   - Notes: This function first call will disable the gin default validator
 func Gin(options ...func(*GinHelper)) *GinHelper {
 	ginHelperOnce.Do(func() {
 		ginHelper = &GinHelper{
@@ -42,16 +44,16 @@ func Gin(options ...func(*GinHelper)) *GinHelper {
 			},
 			BindingValidator: NewGinValidator(),
 			BindingErrorHandler: func(c *gin.Context, err error) {
-				c.AbortWithError(http.StatusBadRequest, err)
+				c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 			},
 			ErrorHandler: func(c *gin.Context, err error) {
-				c.AbortWithError(http.StatusInternalServerError, err)
+				c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
 			},
 			SuccessHandler: func(c *gin.Context, resp any) {
 				c.JSON(http.StatusOK, resp)
 			},
 		}
-		binding.Validator = nil
+		gin.DisableBindValidation()
 	})
 	for _, opt := range options {
 		opt(ginHelper)

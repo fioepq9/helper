@@ -1,13 +1,15 @@
-package helper
+package helper_test
 
 import (
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/fioepq9/helper"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-func TestViper(t *testing.T) {
+var _ = Describe("viper", Label("viper"), func() {
 	type Config struct {
 		Foo  string `yaml:"foo"`
 		File struct {
@@ -24,29 +26,29 @@ func TestViper(t *testing.T) {
 			Age  int    `yaml:"age"`
 		}
 	}
-
 	var c Config
-	err := Viper().Unmarshal(&c)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, "bar", c.Foo)
-	assert.Equal(t, "world", c.File.Hello)
-	assert.Equal(t, []string{"what", "is", "the", "answer"}, c.File.Question)
-	assert.Equal(t, 10*time.Second, c.Timeout)
-	assert.Equal(t, []string{"alice", "bob", "carol"}, c.People)
-	assert.Equal(t, int64(1546272000), c.Date.Unix())
-	assert.Equal(t, int64(1675371906), c.When.Unix())
-	assert.Equal(t, map[string]any{
-		"hello":    "world",
-		"question": []any{"what", "is", "the", "answer"},
-	}, c.File2)
-	assert.Equal(t, []struct {
-		Name string `yaml:"name"`
-		Age  int    `yaml:"age"`
-	}{
-		{"alice", 18},
-		{"bob", 19},
-		{"carol", 20},
-	}, c.File3)
-}
+
+	It("unmarshal success", func() {
+		err := helper.Viper().Unmarshal(&c)
+		Expect(err).To(BeNil())
+		Expect(c.Foo).To(Equal("bar"))
+		Expect(c.File.Hello).To(Equal("world"))
+		Expect(c.File.Question).To(Equal([]string{"what", "is", "the", "answer"}))
+		Expect(c.Timeout).To(Equal(10 * time.Second))
+		Expect(c.People).To(Equal([]string{"alice", "bob", "carol"}))
+		Expect(c.Date.Unix()).To(Equal(int64(1546272000)))
+		Expect(c.When.Unix()).To(Equal(int64(1675371906)))
+		Expect(c.File2).To(Equal(map[string]any{
+			"hello":    "world",
+			"question": []any{"what", "is", "the", "answer"},
+		}))
+		Expect(c.File3).To(Equal([]struct {
+			Name string `yaml:"name"`
+			Age  int    `yaml:"age"`
+		}{
+			{"alice", 18},
+			{"bob", 19},
+			{"carol", 20},
+		}))
+	})
+})

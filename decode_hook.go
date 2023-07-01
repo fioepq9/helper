@@ -4,6 +4,9 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/cockroachdb/errors"
 
 	"github.com/mitchellh/mapstructure"
 )
@@ -92,7 +95,7 @@ func StringToIntHookFunc() mapstructure.DecodeHookFuncType {
 	}
 }
 
-func StringToFloatHookFunc() mapstructure.DecodeHookFuncType {
+func StringToFloat64HookFunc() mapstructure.DecodeHookFuncType {
 	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
 		if from.Kind() != reflect.String {
 			return data, nil
@@ -115,5 +118,37 @@ func StringToBytesHookFunc() mapstructure.DecodeHookFuncType {
 		}
 		s := data.(string)
 		return []byte(s), nil
+	}
+}
+
+func StringToTimeHookFunc() mapstructure.DecodeHookFuncType {
+	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
+		if from.Kind() != reflect.String {
+			return data, nil
+		}
+		if to != reflect.TypeOf(time.Time{}) {
+			return data, nil
+		}
+		s := data.(string)
+		if !strings.HasPrefix(s, "now") {
+			return data, errors.New("cannot find keyword now")
+		}
+		s = strings.TrimPrefix(s, "now")
+		now := time.Now()
+		if len(s) == 0 {
+			return now, nil
+		}
+		verb, s := s[0], s[1:]
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			return data, errors.Wrapf(err, "cannot parse %s to time.Duration", s)
+		}
+		if verb == '+' {
+			return now.Add(d), nil
+		} else if verb == '-' {
+			return now.Add(-d), nil
+		} else {
+			return data, errors.Newf("unsupported verb %c", verb)
+		}
 	}
 }

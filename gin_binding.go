@@ -28,10 +28,11 @@ func NewGinDefaultBinding(options ...func(*GinDefaultBinding)) *GinDefaultBindin
 			StringToSliceHookFunc(","),
 			StringToBoolHookFunc(),
 			StringToIntHookFunc(),
-			StringToFloatHookFunc(),
+			StringToFloat64HookFunc(),
 			StringToBytesHookFunc(),
 			mapstructure.StringToTimeDurationHookFunc(),
 			mapstructure.OrComposeDecodeHookFunc(
+				StringToTimeHookFunc(),
 				mapstructure.StringToTimeHookFunc(time.RFC3339),
 				mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
 			),
