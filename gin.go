@@ -167,21 +167,29 @@ func (r *GinRouter) Handle(method string, path string, handler any) *GinRouter {
 		}
 		out := v.Call(in)
 		var resp any
-		if len(out) == 1 {
+		switch len(out) {
+		case 0:
+			return
+		case 1:
 			if errVal := out[0].Interface(); errVal != nil {
 				err = errVal.(error)
 			}
-		} else {
+		case 2:
 			resp = out[0].Interface()
 			if errVal := out[1].Interface(); errVal != nil {
 				err = errVal.(error)
 			}
+		default:
+			panic("invalid count for handler return values")
 		}
 		if err != nil {
 			r.helper.ErrorHandler(c, err)
 			return
 		}
-		r.helper.SuccessHandler(c, resp)
+		if resp != nil {
+			r.helper.SuccessHandler(c, resp)
+			return
+		}
 	})
 
 	return r
@@ -259,6 +267,7 @@ func (v *GinValidator) Engine() any {
 // handler's last return value must be error
 // handler's first return value must be a pointer
 // example:
+//   - func(c *gin.Context)
 //   - func(c *gin.Context) error
 //   - func(c *gin.Context, *req) error
 //   - func(c *gin.Context) (*resp, error)
@@ -282,10 +291,10 @@ func assertHandler(handler any) {
 		panic("handler's second argument must be a struct pointer")
 	}
 
-	if t.NumOut() == 0 || t.NumOut() > 2 {
-		panic("handler must have 1 or 2 return values")
+	if t.NumOut() > 2 {
+		panic("handler return values count must be 2 or less")
 	}
-	if !t.Out(t.NumOut() - 1).Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+	if t.NumOut() != 0 && !t.Out(t.NumOut()-1).Implements(reflect.TypeOf((*error)(nil)).Elem()) {
 		panic("handler's last return value must be error")
 	}
 	if t.NumOut() == 2 && t.Out(0).Kind() != reflect.Ptr {

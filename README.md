@@ -3,6 +3,7 @@
 ## gin
 
 1. 提供了更多的 handler 选择。
+   - `func(*gin.Context)` 
    - `func(*gin.Context) error`
    - `func(*gin.Context, *reqType) error`
    - `func(*gin.Context) (*respType, error)`
