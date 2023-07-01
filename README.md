@@ -20,10 +20,10 @@
    - `time.Time`: 使用 `time.RFC3339` 或者 `time.RFC3339Nano`，支持 `now+{time.Duration}`, `now-{time.Duration}`
    - 使用 `mapstructure` 支持自定义类型。
    
-4. 支持使用 `zerolog` 覆盖 
+4. 支持使用 `zerolog` 覆盖以下 `gin` 的配置。 
    - `gin.DefaultWriter`
    - `gin.DefaultErrorWriter`
-   - `DebugPrintRouteFunc`。 
+   - `gin.DebugPrintRouteFunc` 
 
 ### usage
 
