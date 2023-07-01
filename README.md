@@ -25,7 +25,7 @@
    - `gin.DefaultErrorWriter`
    - `gin.DebugPrintRouteFunc` 
 
-### usage
+### Usage
 
 ```go
 package main
@@ -60,6 +60,9 @@ func main() {
 }
 ```
 
-### examples
+### Examples
 
 1. [默认值的使用](./examples/gin/default_binding/main.go)
+
+## Contributing
+![Alt](https://repobeats.axiom.co/api/embed/fc33fc4f571db13b097859952614b06b48f46bbe.svg "Repobeats analytics image")

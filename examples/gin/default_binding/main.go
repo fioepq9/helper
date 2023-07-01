@@ -38,6 +38,7 @@ type EchoResponse struct {
 }
 
 // curl -X GET "http://localhost:8080/echo"
+// {"limit":10,"offset":1,"order":"asc","names":["alice","bob","charlie"],"percent":0.5,"all":true,"data":"d2hhdCBpcyB0aGUgcHJvYmxlbSA/","timeout":5000000000,"start":"2020-01-01T00:00:00Z","end":"2023-07-01T00:00:00Z","today":"2023-07-01T22:41:43.2329482+08:00","tomorrow":"2023-07-02T22:41:43.2329511+08:00"}
 func main() {
 	e := gin.New()
 
