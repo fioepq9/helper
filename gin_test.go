@@ -1,6 +1,7 @@
 package helper_test
 
 import (
+	"github.com/rs/zerolog"
 	"net/http/httptest"
 	"time"
 
@@ -66,6 +67,14 @@ var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
 		Tomorrow time.Time     `json:"tomorrow"`
 	}
 
+	type NestedRequest struct {
+		ListRequest `mapstructure:",squash"`
+	}
+
+	type NestedResponse struct {
+		ListResponse
+	}
+
 	var (
 		svc *httptest.Server
 		c   *req.Client
@@ -74,6 +83,13 @@ var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
 	BeforeEach(func() {
 		gin.SetMode(gin.TestMode)
 		e := gin.New()
+		e.Use(func(c *gin.Context) {
+			zerolog.SetGlobalLevel(zerolog.DebugLevel)
+			log := helper.Zerolog().NewLogger(GinkgoWriter)
+			ctx := log.WithContext(c.Request.Context())
+			c.Request = c.Request.WithContext(ctx)
+			c.Next()
+		})
 		r := helper.Gin().Router(e)
 		r.GET("/echo/:name", func(c *gin.Context, req *EchoRequest) (resp *EchoResponse, err error) {
 			return &EchoResponse{
@@ -102,6 +118,24 @@ var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
 				End:      req.End,
 				Today:    req.Today,
 				Tomorrow: req.Tomorrow,
+			}, nil
+		})
+		r.GET("/list/nested", func(c *gin.Context, req *NestedRequest) (resp *NestedResponse, err error) {
+			return &NestedResponse{
+				ListResponse: ListResponse{
+					Limit:    req.Limit,
+					Offset:   req.Offset,
+					Order:    req.Order,
+					Names:    req.Names,
+					Percent:  req.Percent,
+					All:      req.All,
+					Data:     req.Data,
+					Timeout:  req.Timeout,
+					Start:    req.Start,
+					End:      req.End,
+					Today:    req.Today,
+					Tomorrow: req.Tomorrow,
+				},
 			}, nil
 		})
 		svc = httptest.NewServer(e)
@@ -175,6 +209,28 @@ var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
 				Expect(resp.Tomorrow.Truncate(24 * time.Hour)).To(Equal(time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour)))
 			})
 		})
+
+		Context("and all fields are not provided and the request has nested struct field", func() {
+			It("should return success with default value", func(ctx SpecContext) {
+				var resp NestedResponse
+				httpResp, err := c.R().SetSuccessResult(&resp).Get("/list/nested")
+				Expect(err).To(BeNil())
+				Expect(httpResp.IsSuccessState()).To(BeTrue())
+				Expect(resp.Limit).To(Equal(10))
+				Expect(resp.Offset).To(Equal(1))
+				Expect(resp.Order).To(Equal("asc"))
+				Expect(resp.Names).To(Equal([]string{"alice", "bob", "charlie"}))
+				Expect(resp.Percent).To(Equal(0.5))
+				Expect(resp.All).To(BeTrue())
+				Expect(resp.Data).To(Equal([]byte("what is the problem ?")))
+				Expect(resp.Timeout).To(Equal(5 * time.Second))
+				Expect(resp.Start).To(Equal(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)))
+				Expect(resp.End).To(Equal(time.Date(2023, 7, 1, 0, 0, 0, 0, time.UTC)))
+				Expect(resp.Today.Truncate(24 * time.Hour)).To(Equal(time.Now().Truncate(24 * time.Hour)))
+				Expect(resp.Tomorrow.Truncate(24 * time.Hour)).To(Equal(time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour)))
+			})
+		})
+
 	})
 
 	AfterEach(func() {

@@ -23,7 +23,6 @@ type GinDefaultBinding struct {
 
 func NewGinDefaultBinding(options ...func(*GinDefaultBinding)) *GinDefaultBinding {
 	b := &GinDefaultBinding{
-		TagName: "json",
 		DecodeHooks: []mapstructure.DecodeHookFunc{
 			StringToSliceHookFunc(","),
 			StringToBoolHookFunc(),
@@ -50,7 +49,7 @@ func (b *GinDefaultBinding) Name() string {
 	return "default"
 }
 
-func (b *GinDefaultBinding) Bind(_ *gin.Context, obj any) error {
+func (b *GinDefaultBinding) Bind(c *gin.Context, obj any) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName:    b.TagName,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(b.DecodeHooks...),
@@ -60,25 +59,34 @@ func (b *GinDefaultBinding) Bind(_ *gin.Context, obj any) error {
 		return err
 	}
 	t := reflect.TypeOf(obj)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	if t.Kind() != reflect.Struct {
-		return nil
-	}
 
-	dict := make(map[string]string)
-	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		if defaultStr, ok := f.Tag.Lookup(b.Name()); ok {
+	var parseStruct func(t reflect.Type) map[string]any
+	parseStruct = func(t reflect.Type) map[string]any {
+		if t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
+		if t.Kind() != reflect.Struct {
+			return nil
+		}
+		dict := make(map[string]any)
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
 			name := f.Name
 			if tName, ok := f.Tag.Lookup(b.TagName); ok {
 				name = tName
 			}
-			dict[name] = defaultStr
+			if f.Anonymous {
+				for k, v := range parseStruct(f.Type) {
+					dict[k] = v
+				}
+			}
+			if defaultStr, ok := f.Tag.Lookup(b.Name()); ok {
+				dict[name] = defaultStr
+			}
 		}
+		return dict
 	}
-
+	dict := parseStruct(t)
 	if len(dict) == 0 {
 		return nil
 	}

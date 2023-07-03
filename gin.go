@@ -104,6 +104,7 @@ func (r *GinRouter) Handle(method string, path string, handler any) *GinRouter {
 			reqT := reqV.Elem().Type()
 			// check if request struct has tags
 			hasTags := make(map[string]bool)
+			hasTags["default"] = true
 			for i := 0; i < reqT.NumField(); i++ {
 				for _, b := range r.helper.Bindings {
 					tag := b.Name()
