@@ -50,7 +50,7 @@ func (h *ZerologHelper) SetInterfaceMarshalFunc(fn func(any) ([]byte, error)) *Z
 
 func (h *ZerologHelper) SetDefaultGlobalErrorStackMarshaller() *ZerologHelper {
 	return h.SetErrorStackMarshaller(func(err error) any {
-		var lastStackTraceErr error
+		lastStackTraceErr := err
 		for ; err != nil; err = errors.Unwrap(err) {
 			_, ok := err.(errbase.StackTraceProvider)
 			if ok {
