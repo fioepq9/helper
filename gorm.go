@@ -123,6 +123,7 @@ func (l *GormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func(
 	}
 
 	if l.BackupWriter != nil {
+		// write to backup writer
 		l.BackupWriter.Write([]byte(sql + "\n"))
 	}
 
