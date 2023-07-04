@@ -108,7 +108,7 @@ func parsePII(detail string) ([]StackInfo, error) {
 	s := strings.TrimSpace(detail)
 	ss := strings.Split(s, "\n")
 	if len(ss)%2 != 0 {
-		return nil, errors.New("invaild PII-free strings")
+		return nil, errors.New("invalid PII-free strings")
 	}
 	var stackInfos []StackInfo
 	for i := 0; i < len(ss); i += 2 {

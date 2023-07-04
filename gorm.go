@@ -3,6 +3,7 @@ package helper
 import (
 	"context"
 	"fmt"
+	"io"
 	"sync"
 	"time"
 
@@ -25,7 +26,7 @@ func Gorm(options ...func(*GormHelper)) *GormHelper {
 	gormHelperOnce.Do(func() {
 		gormHelper = &GormHelper{
 			Config: &gorm.Config{
-				Logger: newGormZerologLogger(),
+				Logger: NewGormZerologLogger(),
 			},
 		}
 	})
@@ -49,20 +50,27 @@ func (h *GormHelper) MySQL(
 	return gorm.Open(mysql.Open(dsn), h.Config)
 }
 
-type gormZerologLogger struct {
+type GormZerologLogger struct {
+	BackupWriter  io.Writer
 	Level         zerolog.Level
 	SlowThreshold time.Duration
 }
 
-func newGormZerologLogger() *gormZerologLogger {
-	return &gormZerologLogger{
+func NewGormZerologLogger(options ...func(logger *GormZerologLogger)) *GormZerologLogger {
+	log := &GormZerologLogger{
 		Level:         zerolog.TraceLevel,
 		SlowThreshold: 200 * time.Millisecond,
 	}
+
+	for _, opt := range options {
+		opt(log)
+	}
+
+	return log
 }
 
-func (l *gormZerologLogger) LogMode(level logger.LogLevel) logger.Interface {
-	newLogger := gormZerologLogger{
+func (l *GormZerologLogger) LogMode(level logger.LogLevel) logger.Interface {
+	newLogger := GormZerologLogger{
 		SlowThreshold: l.SlowThreshold,
 	}
 	switch level {
@@ -80,22 +88,22 @@ func (l *gormZerologLogger) LogMode(level logger.LogLevel) logger.Interface {
 	return &newLogger
 }
 
-func (l *gormZerologLogger) Info(ctx context.Context, msg string, data ...any) {
+func (l *GormZerologLogger) Info(ctx context.Context, msg string, data ...any) {
 	log := zerolog.Ctx(ctx).Level(l.Level)
 	log.Info().Msgf(msg, data...)
 }
 
-func (l *gormZerologLogger) Warn(ctx context.Context, msg string, data ...any) {
+func (l *GormZerologLogger) Warn(ctx context.Context, msg string, data ...any) {
 	log := zerolog.Ctx(ctx).Level(l.Level)
 	log.Warn().Msgf(msg, data...)
 }
 
-func (l *gormZerologLogger) Error(ctx context.Context, msg string, data ...any) {
+func (l *GormZerologLogger) Error(ctx context.Context, msg string, data ...any) {
 	log := zerolog.Ctx(ctx).Level(l.Level)
 	log.Error().Msgf(msg, data...)
 }
 
-func (l *gormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+func (l *GormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	log := zerolog.Ctx(ctx).Level(l.Level)
 
 	sql, rows := fc()
@@ -112,6 +120,10 @@ func (l *gormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func(
 
 	if rows != -1 {
 		evt = evt.Int64("rows", rows)
+	}
+
+	if l.BackupWriter != nil {
+		l.BackupWriter.Write([]byte(sql + "\n"))
 	}
 
 	evt.Str("sql", sql).Dur("elapsed", elapsed).Send()
