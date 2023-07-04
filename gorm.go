@@ -123,8 +123,8 @@ func (l *GormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func(
 	}
 
 	if l.BackupWriter != nil {
-		// write to backup writer
-		l.BackupWriter.Write([]byte(sql + "\n"))
+		// write to back up writer
+		l.BackupWriter.Write([]byte(sql + ";\n"))
 	}
 
 	evt.Str("sql", sql).Dur("elapsed", elapsed).Send()
