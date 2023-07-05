@@ -3,6 +3,7 @@ package helper
 import (
 	"context"
 	"fmt"
+	"github.com/cockroachdb/errors"
 	"io"
 	"sync"
 	"time"
@@ -51,15 +52,17 @@ func (h *GormHelper) MySQL(
 }
 
 type GormZerologLogger struct {
-	BackupWriter  io.Writer
-	Level         zerolog.Level
-	SlowThreshold time.Duration
+	BackupWriter              io.Writer
+	Level                     zerolog.Level
+	SlowThreshold             time.Duration
+	IgnoreRecordNotFoundError bool
 }
 
 func NewGormZerologLogger(options ...func(logger *GormZerologLogger)) *GormZerologLogger {
 	log := &GormZerologLogger{
-		Level:         zerolog.TraceLevel,
-		SlowThreshold: 200 * time.Millisecond,
+		Level:                     zerolog.TraceLevel,
+		SlowThreshold:             200 * time.Millisecond,
+		IgnoreRecordNotFoundError: true,
 	}
 
 	for _, opt := range options {
@@ -111,7 +114,12 @@ func (l *GormZerologLogger) Trace(ctx context.Context, begin time.Time, fc func(
 
 	var evt *zerolog.Event
 	if err != nil {
-		evt = log.Err(err)
+		switch {
+		case l.IgnoreRecordNotFoundError && errors.Is(err, gorm.ErrRecordNotFound):
+			evt = log.Trace().Str(zerolog.MessageFieldName, err.Error())
+		default:
+			evt = log.Err(err)
+		}
 	} else if elapsed > l.SlowThreshold {
 		evt = log.Warn().Str(zerolog.MessageFieldName, fmt.Sprintf("SLOW SQL >= %v", l.SlowThreshold))
 	} else {
