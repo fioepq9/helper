@@ -100,7 +100,6 @@ func (h *ZerologHelper) ConsoleWriter() zerolog.ConsoleWriter {
 type StackInfo struct {
 	Func string `json:"func"`
 	File string `json:"file"`
-	Line string `json:"line"`
 }
 
 func parsePII(detail string) ([]StackInfo, error) {
@@ -112,14 +111,10 @@ func parsePII(detail string) ([]StackInfo, error) {
 	var stackInfos []StackInfo
 	for i := 0; i < len(ss); i += 2 {
 		fn := ss[i]
-		file, line, ok := strings.Cut(ss[i+1], ":")
-		if !ok {
-			return nil, errors.New("invaild PII-free strings")
-		}
+		file := ss[i+1]
 		stackInfos = append(stackInfos, StackInfo{
 			Func: strings.TrimSpace(fn),
 			File: strings.TrimSpace(file),
-			Line: strings.TrimSpace(line),
 		})
 	}
 
