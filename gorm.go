@@ -3,11 +3,11 @@ package helper
 import (
 	"context"
 	"fmt"
-	"github.com/cockroachdb/errors"
 	"io"
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/rs/zerolog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cockroachdb/errors"
-
 	"github.com/mitchellh/mapstructure"
 )
 

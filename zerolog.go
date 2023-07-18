@@ -8,7 +8,7 @@ import (
 
 	"github.com/cockroachdb/errors"
 	"github.com/cockroachdb/errors/errbase"
-	"github.com/goccy/go-json"
+	json "github.com/goccy/go-json"
 	"github.com/rs/zerolog"
 )
 

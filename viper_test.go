@@ -3,10 +3,10 @@ package helper_test
 import (
 	"time"
 
-	"github.com/fioepq9/helper"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/fioepq9/helper"
 )
 
 var _ = Describe("viper", Label("viper"), func() {

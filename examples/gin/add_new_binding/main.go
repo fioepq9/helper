@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/fioepq9/helper"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+
+	"github.com/fioepq9/helper"
 )
 
 type EchoRequest struct {

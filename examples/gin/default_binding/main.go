@@ -3,8 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/fioepq9/helper"
 	"github.com/gin-gonic/gin"
+
+	"github.com/fioepq9/helper"
 )
 
 type EchoRequest struct {

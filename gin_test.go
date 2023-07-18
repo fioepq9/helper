@@ -1,17 +1,16 @@
 package helper_test
 
 import (
-	"github.com/rs/zerolog"
 	"net/http/httptest"
 	"time"
 
-	"github.com/fioepq9/helper"
-
 	"github.com/gin-gonic/gin"
-
-	"github.com/imroc/req/v3"
+	req "github.com/imroc/req/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/rs/zerolog"
+
+	"github.com/fioepq9/helper"
 )
 
 var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
@@ -230,7 +229,6 @@ var _ = Describe("Checking Binding", Label("gin", "binding"), func() {
 				Expect(resp.Tomorrow.Truncate(24 * time.Hour)).To(Equal(time.Now().Truncate(24 * time.Hour).Add(24 * time.Hour)))
 			})
 		})
-
 	})
 
 	AfterEach(func() {

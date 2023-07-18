@@ -1,18 +1,18 @@
 package helper
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"sync"
 
-	"github.com/go-playground/locales"
-
 	"github.com/cockroachdb/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/locales"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/rs/zerolog"
 )
@@ -216,6 +216,7 @@ type GinValidator struct {
 	Validate           *validator.Validate
 	Translator         locales.Translator
 	TranslatorRegister func(v *validator.Validate, trans ut.Translator) error
+	utTranslator       *ut.UniversalTranslator
 }
 
 var _ binding.StructValidator = (*GinValidator)(nil)
@@ -234,7 +235,9 @@ func NewGinValidator(options ...func(*GinValidator)) *GinValidator {
 		opt(gv)
 	}
 
-	err := gv.TranslatorRegister(v, ut.New(gv.Translator).GetFallback())
+	gv.utTranslator = ut.New(gv.Translator)
+
+	err := gv.TranslatorRegister(v, gv.utTranslator.GetFallback())
 	if err != nil {
 		panic(err)
 	}
@@ -254,7 +257,13 @@ func (v *GinValidator) ValidateStruct(obj any) error {
 		return nil
 	}
 
-	return v.Validate.Struct(obj)
+	err := v.Validate.Struct(obj)
+	if err != nil {
+		errs := err.(validator.ValidationErrors)
+		return errors.New(fmt.Sprintf("%v", errs.Translate(v.utTranslator.GetFallback())))
+	}
+
+	return nil
 }
 
 func (v *GinValidator) Engine() any {
