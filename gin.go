@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bytes"
 	"net/http"
 	"reflect"
 	"strings"
@@ -216,6 +217,7 @@ type GinValidator struct {
 	Validate           *validator.Validate
 	Translator         locales.Translator
 	TranslatorRegister func(v *validator.Validate, trans ut.Translator) error
+	Verbose            bool
 	utTranslator       *ut.UniversalTranslator
 }
 
@@ -229,6 +231,7 @@ func NewGinValidator(options ...func(*GinValidator)) *GinValidator {
 		Validate:           v,
 		Translator:         zh.New(),
 		TranslatorRegister: zhTranslations.RegisterDefaultTranslations,
+		Verbose:            false,
 	}
 
 	for _, opt := range options {
@@ -260,11 +263,22 @@ func (v *GinValidator) ValidateStruct(obj any) error {
 	err := v.Validate.Struct(obj)
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
-		kvTuple := make([]string, 0)
-		for k, v := range errs.Translate(v.utTranslator.GetFallback()) {
-			kvTuple = append(kvTuple, k+"="+v)
+		if v.Verbose {
+			kvTuple := make([]string, 0, len(errs))
+			for k, v := range errs.Translate(v.utTranslator.GetFallback()) {
+				kvTuple = append(kvTuple, k+"="+v)
+			}
+			return errors.Newf("[%s]", strings.Join(kvTuple, ","))
 		}
-		return errors.Newf("[%s]", strings.Join(kvTuple, ","))
+		var buf bytes.Buffer
+		buf.WriteByte('[')
+		vSlice := make([]string, 0, len(errs))
+		for _, v := range errs.Translate(v.utTranslator.GetFallback()) {
+			vSlice = append(vSlice, v)
+		}
+		buf.WriteString(strings.Join(vSlice, ","))
+		buf.WriteByte(']')
+		return errors.New(buf.String())
 	}
 
 	return nil
