@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
 	"sync"
@@ -260,7 +259,7 @@ func (v *GinValidator) ValidateStruct(obj any) error {
 	err := v.Validate.Struct(obj)
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
-		return errors.New(fmt.Sprintf("%v", errs.Translate(v.utTranslator.GetFallback())))
+		return errors.Newf("%v", errs.Translate(v.utTranslator.GetFallback()))
 	}
 
 	return nil
