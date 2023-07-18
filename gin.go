@@ -3,6 +3,7 @@ package helper
 import (
 	"net/http"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/cockroachdb/errors"
@@ -259,7 +260,11 @@ func (v *GinValidator) ValidateStruct(obj any) error {
 	err := v.Validate.Struct(obj)
 	if err != nil {
 		errs := err.(validator.ValidationErrors)
-		return errors.Newf("%v", errs.Translate(v.utTranslator.GetFallback()))
+		kvTuple := make([]string, 0)
+		for k, v := range errs.Translate(v.utTranslator.GetFallback()) {
+			kvTuple = append(kvTuple, k+"="+v)
+		}
+		return errors.Newf("[%s]", strings.Join(kvTuple, ","))
 	}
 
 	return nil
