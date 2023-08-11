@@ -66,6 +66,9 @@ func (h *ViperHelper) Unmarshal(conf any) error {
 			if !ok {
 				return errors.New("cut env failed")
 			}
+			if strings.HasPrefix(key, "_") {
+				continue
+			}
 			err := h.V.BindEnv(strings.ReplaceAll(key, "_", "."), key)
 			if err != nil {
 				return errors.Wrap(err, "bind env failed")
