@@ -1,6 +1,6 @@
 module github.com/fioepq9/helper
 
-go 1.20
+go 1.21
 
 require (
 	github.com/cockroachdb/errors v1.10.0
