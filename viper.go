@@ -3,7 +3,6 @@ package helper
 import (
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/cockroachdb/errors"
@@ -13,8 +12,8 @@ import (
 )
 
 var (
-	viperHelper     *ViperHelper
-	viperHelperOnce sync.Once
+	viperHelper *ViperHelper
+	//viperHelperOnce sync.Once
 )
 
 type ViperHelper struct {
@@ -26,25 +25,23 @@ type ViperHelper struct {
 }
 
 func Viper(options ...func(*ViperHelper)) *ViperHelper {
-	viperHelperOnce.Do(func() {
-		viperHelper = &ViperHelper{
-			V:          viper.New(),
-			ConfigFile: "etc/config.yaml",
-			TagName:    "yaml",
-			EnableEnv:  true,
-			DecodeHooks: []mapstructure.DecodeHookFunc{
-				mapstructure.StringToTimeDurationHookFunc(),
-				StringToSliceHookFunc(","),
-				mapstructure.OrComposeDecodeHookFunc(
-					mapstructure.StringToTimeHookFunc(time.RFC3339),
-					mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
-				),
-				UnmarshalToStructHookFunc(yaml.Unmarshal),
-				UnmarshalToMapHookFunc(yaml.Unmarshal),
-				UnmarshalToSliceHookFunc(yaml.Unmarshal),
-			},
-		}
-	})
+	viperHelper = &ViperHelper{
+		V:          viper.New(),
+		ConfigFile: "etc/config.yaml",
+		TagName:    "yaml",
+		EnableEnv:  true,
+		DecodeHooks: []mapstructure.DecodeHookFunc{
+			mapstructure.StringToTimeDurationHookFunc(),
+			StringToSliceHookFunc(","),
+			mapstructure.OrComposeDecodeHookFunc(
+				mapstructure.StringToTimeHookFunc(time.RFC3339),
+				mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+			),
+			UnmarshalToStructHookFunc(yaml.Unmarshal),
+			UnmarshalToMapHookFunc(yaml.Unmarshal),
+			UnmarshalToSliceHookFunc(yaml.Unmarshal),
+		},
+	}
 	for _, opt := range options {
 		opt(viperHelper)
 	}
