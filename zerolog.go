@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"bytes"
 	"io"
 	"strings"
 	"sync"
@@ -40,7 +41,16 @@ func (h *ZerologHelper) SetGlobalLevel(level zerolog.Level) *ZerologHelper {
 }
 
 func (h *ZerologHelper) SetDefaultGlobalInterfaceMarshalFunc() *ZerologHelper {
-	return h.SetInterfaceMarshalFunc(json.Marshal)
+	return h.SetInterfaceMarshalFunc(func(v any) ([]byte, error) {
+		var buf bytes.Buffer
+		enc := json.NewEncoder(&buf)
+		enc.SetEscapeHTML(false)
+		err := enc.Encode(v)
+		if err != nil {
+			return nil, err
+		}
+		return buf.Bytes(), nil
+	})
 }
 
 func (h *ZerologHelper) SetInterfaceMarshalFunc(fn func(any) ([]byte, error)) *ZerologHelper {

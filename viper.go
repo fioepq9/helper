@@ -3,6 +3,7 @@ package helper
 import (
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cockroachdb/errors"
@@ -12,36 +13,48 @@ import (
 )
 
 var (
-	viperHelper *ViperHelper
-	//viperHelperOnce sync.Once
+	viperHelper     *ViperHelper
+	viperHelperOnce sync.Once
 )
 
 type ViperHelper struct {
-	V           *viper.Viper
-	ConfigFile  string
-	TagName     string
-	EnableEnv   bool
-	DecodeHooks []mapstructure.DecodeHookFunc
+	V             *viper.Viper
+	ConfigFile    string
+	TagName       string
+	EnableEnv     bool
+	IgnoreEnvFunc func(key string, val string) bool
+	DecodeHooks   []mapstructure.DecodeHookFunc
 }
 
 func Viper(options ...func(*ViperHelper)) *ViperHelper {
-	viperHelper = &ViperHelper{
-		V:          viper.New(),
-		ConfigFile: "etc/config.yaml",
-		TagName:    "yaml",
-		EnableEnv:  true,
-		DecodeHooks: []mapstructure.DecodeHookFunc{
-			mapstructure.StringToTimeDurationHookFunc(),
-			StringToSliceHookFunc(","),
-			mapstructure.OrComposeDecodeHookFunc(
-				mapstructure.StringToTimeHookFunc(time.RFC3339),
-				mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
-			),
-			UnmarshalToStructHookFunc(yaml.Unmarshal),
-			UnmarshalToMapHookFunc(yaml.Unmarshal),
-			UnmarshalToSliceHookFunc(yaml.Unmarshal),
-		},
-	}
+	viperHelperOnce.Do(func() {
+		viperHelper = &ViperHelper{
+			V:          viper.New(),
+			ConfigFile: "etc/config.yaml",
+			TagName:    "yaml",
+			EnableEnv:  true,
+			IgnoreEnvFunc: func(key string, val string) bool {
+				if strings.HasPrefix(key, "_") {
+					return true
+				}
+				if strings.Contains(key, "__") {
+					return true
+				}
+				return false
+			},
+			DecodeHooks: []mapstructure.DecodeHookFunc{
+				mapstructure.StringToTimeDurationHookFunc(),
+				StringToSliceHookFunc(","),
+				mapstructure.OrComposeDecodeHookFunc(
+					mapstructure.StringToTimeHookFunc(time.RFC3339),
+					mapstructure.StringToTimeHookFunc(time.RFC3339Nano),
+				),
+				UnmarshalToStructHookFunc(yaml.Unmarshal),
+				UnmarshalToMapHookFunc(yaml.Unmarshal),
+				UnmarshalToSliceHookFunc(yaml.Unmarshal),
+			},
+		}
+	})
 	for _, opt := range options {
 		opt(viperHelper)
 	}
@@ -59,11 +72,11 @@ func (h *ViperHelper) Unmarshal(conf any) error {
 
 	if h.EnableEnv {
 		for _, env := range os.Environ() {
-			key, _, ok := strings.Cut(env, "=")
+			key, val, ok := strings.Cut(env, "=")
 			if !ok {
 				return errors.New("cut env failed")
 			}
-			if strings.HasPrefix(key, "_") {
+			if h.IgnoreEnvFunc(key, val) {
 				continue
 			}
 			err := h.V.BindEnv(strings.ReplaceAll(key, "_", "."), key)

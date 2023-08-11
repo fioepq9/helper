@@ -9,9 +9,10 @@ require (
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/goccy/go-json v0.10.2
+	github.com/google/uuid v1.3.0
 	github.com/imroc/req/v3 v3.37.2
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/onsi/ginkgo/v2 v2.10.0
+	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.8
 	github.com/rs/zerolog v1.29.1
 	github.com/spf13/viper v1.16.0

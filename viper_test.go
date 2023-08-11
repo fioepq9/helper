@@ -1,6 +1,9 @@
 package helper_test
 
 import (
+	"github.com/google/uuid"
+	"github.com/onsi/gomega/gmeasure"
+	"os"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -27,6 +30,9 @@ var _ = Describe("viper", Label("viper"), func() {
 		}
 	}
 	var c Config
+	for i := 0; i < 20000; i++ {
+		os.Setenv(uuid.New().String(), uuid.NewString())
+	}
 
 	It("unmarshal success", func() {
 		err := helper.Viper().Unmarshal(&c)
@@ -50,5 +56,17 @@ var _ = Describe("viper", Label("viper"), func() {
 			{"bob", 19},
 			{"carol", 20},
 		}))
+	})
+
+	It("bench", Serial, func() {
+		experiment := gmeasure.NewExperiment("viper - Benchmark")
+		AddReportEntry(experiment.Name, experiment)
+		experiment.Sample(func(idx int) {
+			experiment.MeasureDuration("env", func() {
+				_ = helper.Viper(func(viperHelper *helper.ViperHelper) {
+					viperHelper.ConfigFile = ""
+				}).Unmarshal(&c)
+			})
+		}, gmeasure.SamplingConfig{N: 200, Duration: time.Minute})
 	})
 })
